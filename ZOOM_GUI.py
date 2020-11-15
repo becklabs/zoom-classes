@@ -1,14 +1,41 @@
+import time
 import webbrowser
 import tkinter as tk
 from functools import partial
 import random
-classes = {'physics': 'https://us02web.zoom.us/j/85914273974?pwd=bGJkcjJwWURiQmY5TXI1cjBsaUp3UT09',
-     'french': 'https://us02web.zoom.us/j/82801323935?pwd=QVVzYUdDNysxbGJHWFlKTFpiYS9BQT09',
-     'stats': 'https://us02web.zoom.us/j/3626433862?pwd=MVpSWkYvQjdtMS9yaituakpaY09udz09',
-     'english': 'https://us02web.zoom.us/j/6582756454?pwd=SHlzSXhlUlRvaldvMEFIdTNDSFhqUT09',
-     'drawing': 'https://meet.google.com/lookup/dwbdbgmbdi?authuser=0&hs=179'}
+import os
+import pandas as pd
 
-def select_class(classes):
+
+def input_classes():
+    print('Running first time setup... input class info below')
+    print('\n')
+    data = pd.DataFrame(columns = ['classkey','url'])
+    i = 0
+    more_classes = 'y'
+
+    while more_classes == 'y':
+        classkey = str(input('Class Name: '))
+        url = str(input('Class Meeting Link: '))
+        more_classes = str(input('Add another class?(y/n): '))
+        data.loc[i,'classkey'] = classkey
+        data.loc[i,'url'] = url
+        i+=1
+    data.to_csv('classes.csv',index=False)
+
+def get_classes():
+    if 'classes.csv' not in os.listdir(os.getcwd()):
+        input_classes()
+    data = pd.read_csv('classes.csv')
+    classes = dict(zip(data['classkey'],data['url']))
+    return classes
+
+def join_class(classkey,classes):
+    url = classes.get(classkey)
+    webbrowser.open(url)
+    
+def select_class():
+    classes = get_classes()
     master = tk.Tk()  
     master.geometry('200x300')
     buttons = []
@@ -20,9 +47,6 @@ def select_class(classes):
                                  command=partial(join_class, list(classes.keys())[i], classes)))
         buttons[i].grid(row=i, column=3, padx=10, pady=10)
     master.mainloop()
-    
-def join_class(classkey,classes):
-    url = classes.get(classkey)
-    webbrowser.open(url)
 
-select_class(classes)
+  
+select_class()
